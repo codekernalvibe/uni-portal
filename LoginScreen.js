@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, Platform, KeyboardAvoidingView, ScrollView, Image, Dimensions } from 'react-native';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { COLORS, GRADIENTS, SHADOWS } from './theme';
+import { validateEmail } from './utils';
 
 const { width } = Dimensions.get('window');
 
@@ -24,8 +25,9 @@ export default function LoginScreen({ navigation, route }) {
             return;
         }
 
-        if (!email.toLowerCase().endsWith('@mnsuam.edu.pk')) {
-            alert("Please use your official university email contain (@mnsuam.edu.pk)");
+        const emailValidation = validateEmail(email);
+        if (!emailValidation.isValid) {
+            alert(emailValidation.message);
             return;
         }
 
@@ -43,8 +45,10 @@ export default function LoginScreen({ navigation, route }) {
     return (
         <View style={styles.mainContainer}>
             <LinearGradient
-                colors={['#EEF2FF', '#FFFFFF']}
+                colors={GRADIENTS.primary}
                 style={styles.backgroundGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
             />
 
             <SafeAreaView style={styles.safeArea}>
@@ -56,7 +60,7 @@ export default function LoginScreen({ navigation, route }) {
 
                         <View style={styles.headerContainer}>
                             <View style={styles.logoContainer}>
-                                <Image source={require('./assets/logo.png')} style={styles.logo} />
+                                <MaterialIcons name="school" size={80} color={COLORS.primary} />
                             </View>
                             <Text style={styles.title}>Welcome Back</Text>
                             <Text style={styles.subtitle}>Sign in to access your student portal</Text>
@@ -64,11 +68,11 @@ export default function LoginScreen({ navigation, route }) {
 
                         <View style={styles.formContainer}>
                             <View style={styles.inputWrapper}>
-                                <MaterialIcons name="email" size={20} color="#6B7280" style={styles.inputIcon} />
+                                <MaterialIcons name="email" size={20} color={COLORS.primary} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="University Email"
-                                    placeholderTextColor="#9CA3AF"
+                                    placeholderTextColor={COLORS.textSecondary}
                                     value={email}
                                     onChangeText={setEmail}
                                     keyboardType="email-address"
@@ -77,11 +81,11 @@ export default function LoginScreen({ navigation, route }) {
                             </View>
 
                             <View style={styles.inputWrapper}>
-                                <MaterialIcons name="lock" size={20} color="#6B7280" style={styles.inputIcon} />
+                                <MaterialIcons name="lock" size={20} color={COLORS.primary} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Password"
-                                    placeholderTextColor="#9CA3AF"
+                                    placeholderTextColor={COLORS.textSecondary}
                                     value={password}
                                     onChangeText={setPassword}
                                     secureTextEntry
@@ -94,13 +98,13 @@ export default function LoginScreen({ navigation, route }) {
                                 activeOpacity={0.8}
                             >
                                 <LinearGradient
-                                    colors={['#2563EB', '#1D4ED8']}
+                                    colors={GRADIENTS.gold}
                                     style={styles.gradientButton}
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 0 }}
                                 >
                                     <Text style={styles.studentButtonText}>Login as Student</Text>
-                                    <MaterialIcons name="arrow-forward" size={20} color="white" />
+                                    <MaterialIcons name="arrow-forward" size={20} color={COLORS.primary} />
                                 </LinearGradient>
                             </TouchableOpacity>
 
@@ -126,14 +130,16 @@ export default function LoginScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.background,
     },
     backgroundGradient: {
         position: 'absolute',
         left: 0,
         right: 0,
         top: 0,
-        bottom: 0,
+        height: '50%', // Gradient only covers top half for a cool effect
+        borderBottomLeftRadius: 40,
+        borderBottomRightRadius: 40,
     },
     safeArea: {
         flex: 1,
@@ -153,16 +159,12 @@ const styles = StyleSheet.create({
     logoContainer: {
         width: 100,
         height: 100,
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.white,
         borderRadius: 25,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 24,
-        shadowColor: '#2563EB',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.1,
-        shadowRadius: 20,
-        elevation: 10,
+        ...SHADOWS.large,
     },
     logo: {
         width: 140,
@@ -172,34 +174,33 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '800',
-        color: '#111827',
+        color: COLORS.white, // White text against the gradient
         marginBottom: 8,
         textAlign: 'center',
     },
     subtitle: {
         fontSize: 16,
-        color: '#6B7280',
+        color: 'rgba(255, 255, 255, 0.8)', // Semi-transparent white
         textAlign: 'center',
         maxWidth: '80%',
     },
     formContainer: {
         marginBottom: 24,
+        backgroundColor: COLORS.white,
+        borderRadius: 24,
+        padding: 24,
+        ...SHADOWS.medium,
     },
     inputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.inputBackground,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: COLORS.border,
         borderRadius: 16,
         paddingHorizontal: 16,
         marginBottom: 16,
         height: 56,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
     },
     inputIcon: {
         marginRight: 12,
@@ -207,18 +208,14 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         fontSize: 16,
-        color: '#1F2937',
+        color: COLORS.textPrimary,
         height: '100%',
     },
     studentButton: {
         borderRadius: 16,
         marginBottom: 16,
         marginTop: 8,
-        shadowColor: '#2563EB',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-        elevation: 8,
+        ...SHADOWS.small,
     },
     gradientButton: {
         flexDirection: 'row',
@@ -228,7 +225,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
     },
     studentButtonText: {
-        color: '#fff',
+        color: COLORS.primary, // Dark text on gold button
         fontSize: 16,
         fontWeight: '700',
         marginRight: 8,
@@ -240,7 +237,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     teacherButtonText: {
-        color: '#6B7280',
+        color: COLORS.textSecondary,
         fontSize: 16,
         fontWeight: '600',
     },
@@ -251,11 +248,11 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
     footerText: {
-        color: '#6B7280',
+        color: COLORS.textSecondary,
         fontSize: 15,
     },
     signupText: {
-        color: '#2563EB',
+        color: COLORS.primary,
         fontSize: 15,
         fontWeight: '700',
     },
