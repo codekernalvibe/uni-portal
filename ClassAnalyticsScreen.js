@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, ScrollView, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { COLORS, GRADIENTS, SHADOWS } from './theme';
 
 const { width } = Dimensions.get('window');
 
@@ -16,7 +17,7 @@ export default function ClassAnalyticsScreen({ navigation }) {
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
+                    <MaterialIcons name="arrow-back" size={24} color={COLORS.textPrimary} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Class Analytics</Text>
                 <View style={{ width: 40 }} />
@@ -26,33 +27,33 @@ export default function ClassAnalyticsScreen({ navigation }) {
 
                 {/* Average Grade Card */}
                 <LinearGradient
-                    colors={['#4F46E5', '#4338CA']}
+                    colors={GRADIENTS.primary}
                     style={styles.statsCard}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                 >
                     <View style={styles.statsIcon}>
-                        <MaterialIcons name="grade" size={24} color="#fff" />
+                        <MaterialIcons name="grade" size={24} color={COLORS.white} />
                     </View>
                     <View>
                         <Text style={styles.statsLabel}>Class Average Grade</Text>
                         <Text style={styles.statsValue}>B+ (3.4)</Text>
                     </View>
                     <View style={styles.trendBadge}>
-                        <MaterialIcons name="trending-up" size={16} color="#10B981" />
+                        <MaterialIcons name="trending-up" size={16} color={COLORS.success} />
                         <Text style={styles.trendText}>+0.2</Text>
                     </View>
                 </LinearGradient>
 
                 {/* Attendance Rate Card */}
                 <LinearGradient
-                    colors={['#059669', '#047857']}
+                    colors={GRADIENTS.success}
                     style={styles.statsCard}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                 >
                     <View style={styles.statsIcon}>
-                        <MaterialIcons name="event-available" size={24} color="#fff" />
+                        <MaterialIcons name="event-available" size={24} color={COLORS.white} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.statsLabel}>Attendance Rate</Text>
@@ -72,9 +73,13 @@ export default function ClassAnalyticsScreen({ navigation }) {
                 <View style={styles.chartContainer}>
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, index) => {
                         const heights = [40, 60, 20, 90, 120]; // Dummy heights
+                        const isHighest = day === 'Fri';
                         return (
                             <View key={day} style={styles.barContainer}>
-                                <View style={[styles.bar, { height: heights[index], backgroundColor: day === 'Fri' ? '#EF4444' : '#E5E7EB' }]} />
+                                <LinearGradient
+                                    colors={isHighest ? GRADIENTS.danger : [COLORS.border, COLORS.border]}
+                                    style={[styles.bar, { height: heights[index] }]}
+                                />
                                 <Text style={styles.dayLabel}>{day}</Text>
                             </View>
                         )
@@ -84,8 +89,8 @@ export default function ClassAnalyticsScreen({ navigation }) {
 
 
                 <View style={styles.sectionHeader}>
-                    <Text style={[styles.sectionTitle, { color: '#EF4444' }]}>At-Risk Students</Text>
-                    <MaterialIcons name="warning" size={20} color="#EF4444" />
+                    <Text style={[styles.sectionTitle, { color: COLORS.error }]}>At-Risk Students</Text>
+                    <MaterialIcons name="warning" size={20} color={COLORS.error} />
                 </View>
 
                 {/* At Risk List */}
@@ -96,7 +101,7 @@ export default function ClassAnalyticsScreen({ navigation }) {
                             <Text style={styles.riskLabel}>Attendance: {student.attendance}</Text>
                         </View>
                         <View style={[styles.riskBadge, { backgroundColor: student.risk === 'High' ? '#FEE2E2' : '#FEF3C7' }]}>
-                            <Text style={[styles.riskText, { color: student.risk === 'High' ? '#EF4444' : '#D97706' }]}>
+                            <Text style={[styles.riskText, { color: student.risk === 'High' ? COLORS.error : COLORS.warning }]}>
                                 {student.risk} Risk
                             </Text>
                         </View>
@@ -111,7 +116,7 @@ export default function ClassAnalyticsScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.background,
     },
     header: {
         flexDirection: 'row',
@@ -120,7 +125,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 50,
         paddingBottom: 20,
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.cardBackground,
+        ...SHADOWS.small,
     },
     backButton: {
         padding: 8,
@@ -128,7 +134,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#111827',
+        color: COLORS.textPrimary,
     },
     content: {
         padding: 24,
@@ -139,11 +145,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 16,
-        shadowColor: '#4F46E5',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
+        ...SHADOWS.medium,
     },
     statsIcon: {
         width: 48,
@@ -161,7 +163,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     statsValue: {
-        color: '#fff',
+        color: COLORS.white,
         fontSize: 24,
         fontWeight: 'bold',
     },
@@ -169,7 +171,7 @@ const styles = StyleSheet.create({
         marginLeft: 'auto',
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.white,
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 12,
@@ -177,7 +179,7 @@ const styles = StyleSheet.create({
     trendText: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#10B981',
+        color: COLORS.success,
         marginLeft: 4,
     },
     progressBar: {
@@ -189,7 +191,7 @@ const styles = StyleSheet.create({
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.white,
         borderRadius: 3,
     },
     sectionHeader: {
@@ -201,12 +203,12 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#1F2937',
+        color: COLORS.textPrimary,
         marginRight: 8,
     },
     sectionSubtitle: {
         fontSize: 12,
-        color: '#9CA3AF',
+        color: COLORS.textSecondary,
         marginLeft: 'auto',
     },
     chartContainer: {
@@ -214,10 +216,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'flex-end',
         height: 150,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: COLORS.cardBackground,
         borderRadius: 16,
         padding: 16,
         paddingBottom: 8,
+        ...SHADOWS.small,
     },
     barContainer: {
         alignItems: 'center',
@@ -229,12 +232,12 @@ const styles = StyleSheet.create({
     },
     dayLabel: {
         fontSize: 12,
-        color: '#6B7280',
+        color: COLORS.textSecondary,
         fontWeight: '500',
     },
     chartNote: {
         fontSize: 12,
-        color: '#6B7280',
+        color: COLORS.textSecondary,
         marginTop: 8,
         textAlign: 'center',
         fontStyle: 'italic',
@@ -243,21 +246,22 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.cardBackground,
         padding: 16,
         borderRadius: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: '#F3F4F6',
+        borderColor: COLORS.border,
+        ...SHADOWS.small,
     },
     studentName: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#1F2937',
+        color: COLORS.textPrimary,
     },
     riskLabel: {
         fontSize: 13,
-        color: '#6B7280',
+        color: COLORS.textSecondary,
         marginTop: 2,
     },
     riskBadge: {

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Alert, Modal, FlatList } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { COLORS, GRADIENTS, SHADOWS } from './theme';
+import { calculateGPA, generateId, GRADES } from './utils';
 
 export default function GPACalculatorScreen({ navigation }) {
     const [courses, setCourses] = useState([
@@ -10,15 +13,8 @@ export default function GPACalculatorScreen({ navigation }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [currentCourseId, setCurrentCourseId] = useState(null);
 
-    const GRADES = {
-        'A': 4.0, 'A-': 3.7,
-        'B+': 3.3, 'B': 3.0, 'B-': 2.7,
-        'C+': 2.3, 'C': 2.0, 'C-': 1.7,
-        'D+': 1.3, 'D': 1.0, 'F': 0.0
-    };
-
     const addCourse = () => {
-        const newId = (courses.length + 1).toString() + Math.random().toString();
+        const newId = generateId();
         setCourses([...courses, { id: newId, name: '', grade: 'A', credits: '' }]);
     };
 
@@ -27,7 +23,7 @@ export default function GPACalculatorScreen({ navigation }) {
     };
 
     const clearAll = () => {
-        setCourses([{ id: '1', name: '', grade: 'A', credits: '' }]);
+        setCourses([{ id: generateId(), name: '', grade: 'A', credits: '' }]);
         setGpa(null);
     };
 
@@ -51,44 +47,25 @@ export default function GPACalculatorScreen({ navigation }) {
         setModalVisible(false);
     };
 
-    const calculateGPA = () => {
-        let totalPoints = 0;
-        let totalCredits = 0;
-        let hasError = false;
+    const handleCalculateGPA = () => {
+        const result = calculateGPA(courses);
 
-        courses.forEach(course => {
-            if (course.credits) {
-                const credit = parseFloat(course.credits);
-                if (isNaN(credit)) {
-                    hasError = true;
-                } else {
-                    totalPoints += GRADES[course.grade] * credit;
-                    totalCredits += credit;
-                }
-            }
-        });
-
-        if (hasError) {
-            Alert.alert("Invalid Input", "Please enter valid numeric credits.");
+        if (result.error) {
+            Alert.alert("Calculation Error", result.error);
             return;
         }
 
-        if (totalCredits === 0) {
-            Alert.alert("Missing Input", "Please enter credits for at least one subject.");
-            return;
-        }
-
-        setGpa((totalPoints / totalCredits).toFixed(2));
+        setGpa(result.gpa);
     };
 
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <MaterialIcons name="arrow-back" size={24} color={COLORS.textPrimary} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>GPA Calculator</Text>
-                <View style={{ width: 24 }} />
+                <View style={{ width: 40 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
@@ -109,6 +86,7 @@ export default function GPACalculatorScreen({ navigation }) {
                             <TextInput
                                 style={[styles.input, { flex: 4 }]}
                                 placeholder="Eg.Web"
+                                placeholderTextColor={COLORS.textSecondary}
                                 value={course.name}
                                 onChangeText={(text) => updateCourse(course.id, 'name', text)}
                             />
@@ -118,19 +96,20 @@ export default function GPACalculatorScreen({ navigation }) {
                                 onPress={() => openGradeModal(course.id)}
                             >
                                 <Text style={styles.gradeText}>{course.grade}</Text>
-                                <MaterialIcons name="keyboard-arrow-down" size={20} color="#9CA3AF" />
+                                <MaterialIcons name="keyboard-arrow-down" size={20} color={COLORS.textSecondary} />
                             </TouchableOpacity>
 
                             <TextInput
                                 style={[styles.input, { flex: 2 }]}
                                 placeholder="Eg. 3"
+                                placeholderTextColor={COLORS.textSecondary}
                                 keyboardType="numeric"
                                 value={course.credits}
                                 onChangeText={(text) => updateCourse(course.id, 'credits', text)}
                             />
 
                             <TouchableOpacity onPress={() => removeCourse(course.id)} style={styles.removeButton}>
-                                <MaterialIcons name="close" size={20} color="#EF4444" />
+                                <MaterialIcons name="close" size={20} color={COLORS.error} />
                             </TouchableOpacity>
                         </View>
                     ))}
@@ -151,16 +130,29 @@ export default function GPACalculatorScreen({ navigation }) {
                 </View>
 
                 {/* Calculate Button */}
-                <TouchableOpacity style={styles.calculateButton} onPress={calculateGPA}>
-                    <Text style={styles.calculateButtonText}>Calculate</Text>
-                    <MaterialIcons name="keyboard-arrow-down" size={24} color="white" />
+                <TouchableOpacity onPress={handleCalculateGPA} activeOpacity={0.8} style={{ width: '100%', alignItems: 'center' }}>
+                     <LinearGradient
+                        colors={GRADIENTS.primary}
+                        style={styles.calculateButton}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                    >
+                        <Text style={styles.calculateButtonText}>Calculate GPA</Text>
+                        <MaterialIcons name="keyboard-arrow-down" size={24} color="white" />
+                    </LinearGradient>
                 </TouchableOpacity>
 
                 {gpa && (
-                    <View style={styles.resultContainer}>
+                    <LinearGradient
+                        colors={GRADIENTS.gold}
+                        style={styles.resultContainer}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                    >
                         <Text style={styles.resultLabel}>Your GPA</Text>
                         <Text style={styles.resultValue}>{gpa}</Text>
-                    </View>
+                        <MaterialIcons name="star" size={32} color={COLORS.white} style={{ marginTop: 8 }} />
+                    </LinearGradient>
                 )}
             </ScrollView>
 
@@ -199,7 +191,7 @@ export default function GPACalculatorScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: COLORS.background,
     },
     header: {
         flexDirection: 'row',
@@ -208,28 +200,33 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 50,
         paddingBottom: 20,
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.cardBackground,
+        ...SHADOWS.small,
+    },
+    backButton: {
+        padding: 8,
     },
     headerTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
-        color: '#1F2937',
+        color: COLORS.textPrimary,
     },
     content: {
         padding: 20,
         alignItems: 'center',
     },
     card: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
+        backgroundColor: COLORS.cardBackground,
+        borderRadius: 24,
         padding: 24,
         width: '100%',
         marginBottom: 24,
+        ...SHADOWS.medium,
     },
     semesterTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#111827', // Dark blueish text
+        color: COLORS.primary,
         marginBottom: 20,
     },
     tableHeader: {
@@ -238,7 +235,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
     },
     headerText: {
-        color: '#047857', // Teal color for headers like in image
+        color: COLORS.primaryLight,
         fontWeight: '700',
         fontSize: 14,
     },
@@ -248,13 +245,15 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     input: {
-        backgroundColor: '#EFF6FF', // Light blue background
+        backgroundColor: COLORS.inputBackground,
         paddingVertical: 12,
         paddingHorizontal: 12,
-        borderRadius: 4,
+        borderRadius: 12,
         marginRight: 10,
         fontSize: 14,
-        color: '#374151',
+        color: COLORS.textPrimary,
+        borderWidth: 1,
+        borderColor: COLORS.border,
     },
     gradeInput: {
         flex: 2,
@@ -263,7 +262,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     gradeText: {
-        color: '#374151',
+        color: COLORS.textPrimary,
+        fontWeight: '600',
     },
     removeButton: {
         padding: 4,
@@ -277,34 +277,35 @@ const styles = StyleSheet.create({
     actionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
+        paddingVertical: 12,
         paddingHorizontal: 20,
-        borderRadius: 4,
+        borderRadius: 12,
+        ...SHADOWS.small,
     },
     addButton: {
-        backgroundColor: '#0056D2', // Blue as requested
+        backgroundColor: COLORS.primary,
     },
     clearButton: {
-        backgroundColor: '#DC2626', // Red as requested
+        backgroundColor: COLORS.error,
     },
     actionButtonText: {
-        color: '#fff',
+        color: COLORS.white,
         fontWeight: '600',
         fontSize: 14,
     },
     calculateButton: {
-        backgroundColor: '#1E1B4B', // Dark blue like image footer
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 16,
         paddingHorizontal: 32,
-        borderRadius: 4,
+        borderRadius: 16,
         width: '100%',
-        maxWidth: 200,
+        maxWidth: 240,
+        ...SHADOWS.medium,
     },
     calculateButtonText: {
-        color: '#fff',
+        color: COLORS.white,
         fontSize: 18,
         fontWeight: 'bold',
         marginRight: 8,
@@ -312,20 +313,21 @@ const styles = StyleSheet.create({
     resultContainer: {
         marginTop: 24,
         alignItems: 'center',
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 12,
+        padding: 24,
+        borderRadius: 24,
         width: '100%',
+        ...SHADOWS.large,
     },
     resultLabel: {
         fontSize: 16,
-        color: '#6B7280',
+        color: 'rgba(255,255,255,0.9)',
         marginBottom: 4,
+        fontWeight: '600',
     },
     resultValue: {
-        fontSize: 36,
-        fontWeight: 'bold',
-        color: '#2563EB',
+        fontSize: 48,
+        fontWeight: '800',
+        color: COLORS.white,
     },
     modalOverlay: {
         flex: 1,
@@ -334,20 +336,21 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalContent: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
+        backgroundColor: COLORS.cardBackground,
+        borderRadius: 16,
         padding: 10,
         width: 200,
         maxHeight: 300,
+        ...SHADOWS.large,
     },
     modalItem: {
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: COLORS.inputBackground,
     },
     modalItemText: {
         fontSize: 16,
-        color: '#374151',
+        color: COLORS.textPrimary,
         textAlign: 'center',
     },
 });
